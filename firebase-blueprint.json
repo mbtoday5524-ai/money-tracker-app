@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "UserSettings": {
+      "title": "User Settings",
+      "description": "Initial balances and fee percentages for the user.",
+      "type": "object",
+      "properties": {
+        "kbzInitial": { "type": "number", "description": "Starting balance for KBZ Pay" },
+        "waveInitial": { "type": "number", "description": "Starting balance for Wave Pay" },
+        "ayaInitial": { "type": "number", "description": "Starting balance for AYA Pay" },
+        "cashInitial": { "type": "number", "description": "Starting balance for Cash" },
+        "percentIn": { "type": "number", "description": "Processing fee percentage for incoming money" },
+        "percentOut": { "type": "number", "description": "Processing fee percentage for outgoing money" },
+        "kbzPhone": { "type": "string", "description": "Phone number for KBZ Pay" },
+        "wavePhone": { "type": "string", "description": "Phone number for Wave Pay" },
+        "ayaPhone": { "type": "string", "description": "Phone number for AYA Pay" },
+        "kbzLogoUrl": { "type": "string", "description": "Custom logo URL for KBZ Pay" },
+        "waveLogoUrl": { "type": "string", "description": "Custom logo URL for Wave Pay" },
+        "ayaLogoUrl": { "type": "string", "description": "Custom logo URL for AYA Pay" },
+        "cashLogoUrl": { "type": "string", "description": "Custom logo URL for Cash" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["kbzInitial", "waveInitial", "ayaInitial", "cashInitial", "percentIn", "percentOut", "updatedAt"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A single financial transaction entry.",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "description": "Date of transaction (YYYY-MM-DD)" },
+        "category": { "type": "string", "enum": ["KBZ", "Wave", "AYAPay", "Cash"], "description": "Payment provider" },
+        "type": { "type": "string", "enum": ["in", "out"], "description": "Type of transaction" },
+        "amount": { "type": "number", "description": "Transaction amount" },
+        "fee": { "type": "number", "description": "Calculated service fee" },
+        "phoneNumber": { "type": "string", "description": "Optional phoneNumber for reference" },
+        "feePaymentMethod": { "type": "string", "enum": ["Cash", "Wallet"], "description": "Method of paying transaction fees" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "userId": { "type": "string", "description": "The user who owns this transaction" }
+      },
+      "required": ["date", "category", "type", "amount", "fee", "createdAt", "userId"]
+    },
+    "AccountStatus": {
+      "title": "Account Status",
+      "description": "Subscription or activation status for a user.",
+      "type": "object",
+      "properties": {
+        "active": { "type": "boolean", "description": "Whether the user is allowed to use the app" },
+        "expiresAt": { "type": "string", "format": "date-time", "description": "When the access expires" }
+      },
+      "required": ["active"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Basic user identification info for admin visibility.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "lastLogin": { "type": "string", "format": "date-time" },
+        "totalTransactions": { "type": "number" },
+        "totalVolume": { "type": "number" }
+      },
+      "required": ["email", "displayName", "lastLogin"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Global user listing for admin."
+    },
+    "/users/{userId}/account/status": {
+      "schema": "AccountStatus",
+      "description": "Activation record for the user."
+    },
+    "/users/{userId}/settings/info": {
+      "schema": "UserSettings",
+      "description": "The user's configuration and initial balances."
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "The subcollection of transactions for a specific user."
+    }
+  }
+}

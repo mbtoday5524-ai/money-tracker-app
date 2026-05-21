@@ -1,0 +1,17 @@
+{
+  "name": "Z Money Tracker",
+  "short_name": "ZMT",
+  "description": "Financial transaction tracker for MM Pay services.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2489/2489756.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

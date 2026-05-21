@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Noto+Sans+Myanmar:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Noto Sans Myanmar", "Inter", sans-serif;
+  --font-display: "Noto Sans Myanmar", "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  html {
+    @apply antialiased subpixel-antialiased;
+  }
+}
+
+@theme {
+  --color-kbz: #2563eb;
+  --color-wave: #fbbf24;
+  --color-aya: #dc2626;
+  --color-cash: #059669;
+  --color-indigo-primary: #4f46e5;
+
+  @keyframes shimmer {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
+  --animate-shimmer: shimmer 2s infinite linear;
+}
+
+/* Hide number input spinners */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 font-sans antialiased transition-colors duration-300;
+  }
+}
+
+.dark body {
+  @apply bg-[#020617] text-slate-100;
+}
+
+.sleek-shadow {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+}
+
+.dark .sleek-shadow {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.2);
+}
+
+.indicator-dot {
+  @apply w-2 h-2 rounded-full;
+}
+
+/* Glassmorphism */
+.glass-effect {
+  @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/5;
+}
+
+/* Hide scrollbar */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom transitions */
+.transition-colors {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 300ms;
+}

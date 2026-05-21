@@ -1,0 +1,111 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (request.auth.token.email == "mbtoday5524@gmail.com" || request.auth.uid == "GuUOChCQj0eN1pdFpsET9CY33KG2");
+    }
+
+    function isActivated(userId) {
+      let statusPath = /databases/$(database)/documents/users/$(userId)/account/status;
+      return isAdmin() || (exists(statusPath) && get(statusPath).data.active == true);
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Helpers ---
+
+    function isValidUserSettings(data) {
+      let requiredFields = ['kbzInitial', 'waveInitial', 'ayaInitial', 'cashInitial', 'percentIn', 'percentOut', 'updatedAt'];
+      let optionalFields = ['kbzPhone', 'wavePhone', 'ayaPhone', 'kbzLogoUrl', 'waveLogoUrl', 'ayaLogoUrl', 'cashLogoUrl', 'notificationsEnabled', 'notificationEmail', 'lowBalanceThreshold', 'kbzEnabled', 'waveEnabled', 'ayaEnabled', 'cashEnabled', 'uabInitial', 'trueInitial', 'uabEnabled', 'trueEnabled', 'uabPhone', 'truePhone', 'uabLogoUrl', 'trueLogoUrl'];
+      let allAllowedFields = requiredFields.concat(optionalFields);
+      
+      return data.keys().hasAll(requiredFields)
+        && data.keys().hasOnly(allAllowedFields)
+        && data.kbzInitial is number
+        && data.waveInitial is number
+        && data.ayaInitial is number
+        && data.cashInitial is number
+        && (!('uabInitial' in data) || data.uabInitial is number)
+        && (!('trueInitial' in data) || data.trueInitial is number)
+        && data.percentIn is number && data.percentIn >= 0 && data.percentIn <= 100
+        && data.percentOut is number && data.percentOut >= 0 && data.percentOut <= 100
+        && data.updatedAt == request.time;
+    }
+
+    function isValidTransaction(data, userId) {
+      let requiredFields = ['date', 'category', 'type', 'amount', 'fee', 'createdAt', 'userId'];
+      let optionalFields = ['phoneNumber', 'feePaymentMethod'];
+      let allAllowedFields = requiredFields.concat(optionalFields);
+      
+      return data.keys().hasAll(requiredFields)
+        && data.keys().hasOnly(allAllowedFields)
+        && data.date is string && data.date.size() <= 20
+        && data.category in ['KBZ', 'Wave', 'AYAPay', 'UABPay', 'TrueMoney', 'Cash']
+        && data.type in ['in', 'out']
+        && data.amount is number && data.amount > 0
+        && data.fee is number && data.fee >= 0
+        && data.userId == userId
+        && data.createdAt == request.time
+        && (data.phoneNumber is string || !('phoneNumber' in data))
+        && (data.feePaymentMethod in ['Cash', 'Wallet'] || !('feePaymentMethod' in data));
+    }
+
+    // --- Matches ---
+
+    match /settings/global {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create: if isOwner(userId) && isSignedIn();
+      allow update: if isOwner(userId) || isAdmin();
+
+      match /account/status {
+        allow get: if isOwner(userId) || isAdmin();
+        allow write: if isAdmin();
+      }
+
+      match /settings/info {
+        allow get: if (isOwner(userId) && isActivated(userId)) || isAdmin();
+        allow create: if isOwner(userId) && isValidUserSettings(incoming());
+        allow update: if isOwner(userId) && isActivated(userId) && isValidUserSettings(incoming());
+      }
+
+      match /transactions/{transactionId} {
+        allow list, get: if (isOwner(userId) && isActivated(userId)) || isAdmin();
+        allow create: if isOwner(userId) && isActivated(userId)
+          && isValidId(transactionId)
+          && isValidTransaction(incoming(), userId);
+        allow update: if false; // Transactions are immutable for integrity in this version
+        allow delete: if isOwner(userId) && isActivated(userId);
+      }
+    }
+  }
+}

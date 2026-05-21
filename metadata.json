@@ -1,0 +1,8 @@
+{
+  "name": "Z Money Tracker",
+  "description": "A refined transaction tracker for KBZ Pay, Wave Pay, and Cash with automated fee calculations and cloud sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
