@@ -1,10 +1,10 @@
 {
-  "firestore": {
-    "database": "ai-studio-4809d20b-41d8-4fb6-b4e6-df63079a7147",
-    "location": "us-west1",
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
+  "firestore": [
+    {
+      "database": "ai-studio-4809d20b-41d8-4fb6-b4e6-df63079a7147",
+      "rules": "firestore.rules"
+    }
+  ],
   "hosting": {
     "public": "dist",
     "ignore": [

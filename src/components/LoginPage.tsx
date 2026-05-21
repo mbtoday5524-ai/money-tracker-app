@@ -38,11 +38,11 @@ export default function LoginPage({ language, setLanguage }: LoginPageProps) {
       {/* Navigation */}
       <nav className="relative z-20 flex items-center justify-center border-b border-white/5 backdrop-blur-md shrink-0">
         <div className="w-full max-w-7xl flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <Wallet className="text-white" size={18} />
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-black/30 border border-slate-700/50">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
             </div>
-            <span className="text-white font-bold text-sm tracking-tight whitespace-nowrap">Z Money Tracker</span>
+            <span className="text-white font-bold text-base tracking-tight whitespace-nowrap">Z Money Tracker</span>
           </div>
           
           <button 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from './lib/firebase';
+import { auth, db } from './lib/firebase';
+import { onSnapshotsInSync } from 'firebase/firestore';
 import { 
   getUserSettings, 
   saveUserSettings, 
@@ -67,6 +68,59 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [initialFetchDone, setInitialFetchDone] = useState(false);
+  const [syncState, setSyncState] = useState<'synced' | 'syncing'>('synced');
+
+  // Handle connection state and syncing state in real-time
+  useEffect(() => {
+    if (!user) return;
+
+    const handleSyncing = () => {
+      setSyncState('syncing');
+    };
+
+    const handleSynced = () => {
+      if (navigator.onLine) {
+        setSyncState('synced');
+      }
+    };
+
+    const handleOnline = () => {
+      // Handled by onSnapshotsInSync
+    };
+
+    const handleOffline = () => {
+      setSyncState('syncing');
+    };
+
+    window.addEventListener('firestore-syncing', handleSyncing);
+    window.addEventListener('firestore-synced', handleSynced);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Initial check
+    if (!navigator.onLine) {
+      setSyncState('syncing');
+    }
+
+    // Subscribe to Firestore's snapshot-in-sync events to know when local writes sync to cloud
+    const unsubscribe = onSnapshotsInSync(db, () => {
+      if (navigator.onLine) {
+        setSyncState('synced');
+        window.dispatchEvent(new CustomEvent('firestore-synced'));
+      } else {
+        setSyncState('syncing');
+      }
+    });
+
+    return () => {
+      window.removeEventListener('firestore-syncing', handleSyncing);
+      window.removeEventListener('firestore-synced', handleSynced);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      unsubscribe();
+    };
+  }, [user]);
+
 
   const checkStatus = async () => {
     if (!user || refreshing) return;
@@ -448,10 +502,67 @@ export default function App() {
 
   if (authLoading || (user && isActivated === null)) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#020617]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="animate-spin text-indigo-500" size={32} />
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest animate-pulse">Initializing System..</p>
+      <div className="min-h-screen flex items-center justify-center bg-black overflow-hidden relative">
+        {/* Dynamic deep neon blue spatial glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle_at_center,rgba(0,176,255,0.12)_0%,rgba(13,110,253,0.04)_45%,transparent_70%)] blur-2xl pointer-events-none" />
+        
+        {/* Ambient subtle starry particle glow points */}
+        <div className="absolute inset-0 opacity-40 pointer-events-none">
+          <div className="absolute top-[25%] left-[20%] w-1.5 h-1.5 rounded-full bg-cyan-400 blur-[1px] animate-pulse" />
+          <div className="absolute bottom-[30%] right-[25%] w-1 h-1 rounded-full bg-blue-400 blur-[1.5px] animate-pulse duration-1000" />
+          <div className="absolute top-[60%] right-[15%] w-2 h-2 rounded-full bg-cyan-500/50 blur-[2px] animate-pulse duration-700" />
+          <div className="absolute bottom-[15%] left-[35%] w-1 h-1 rounded-full bg-blue-300 blur-[0.5px] animate-pulse duration-1500" />
+        </div>
+
+        <div className="flex flex-col items-center gap-8 relative z-10 px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85, y: -15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+            className="relative"
+          >
+            {/* Spinning Neon Blue Halo outer ring */}
+            <div className="absolute -inset-4 rounded-full border border-cyan-500/20 animate-[spin_10s_linear_infinite]" />
+            
+            {/* Pulsing high energy Cyan/Blue Neon Glow Ring */}
+            <div className="absolute -inset-2.5 rounded-full bg-gradient-to-tr from-cyan-400 to-[#00b0ff] opacity-40 blur-xl animate-pulse" />
+            
+            {/* Thin sharp bright Cyan accent ring */}
+            <div className="absolute -inset-0.5 rounded-full bg-gradient-to-tr from-cyan-400 via-sky-400 to-blue-600 opacity-90" />
+            
+            {/* Main Round Logo Container */}
+            <div className="w-48 h-48 sm:w-56 sm:h-56 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(0,176,255,0.3)] relative z-10 overflow-hidden bg-black border-2 border-cyan-400/30">
+              <img 
+                src="/logo.png" 
+                alt="Z Money Tracker Logo" 
+                className="w-full h-full object-cover scale-[1.01]" 
+              />
+            </div>
+            
+            {/* Spinning loader badge matching logo neon vibe */}
+            <div className="absolute -bottom-1 -right-1 bg-black border-2 border-cyan-400 rounded-full p-2.5 shadow-[0_0_20px_rgba(0,176,255,0.5)] z-20">
+              <Loader2 className="animate-spin text-cyan-400" size={24} />
+            </div>
+          </motion.div>
+          
+          <div className="flex flex-col items-center gap-2 text-center">
+            <motion.h1 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="font-sans font-black text-xl tracking-[0.2em] bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(0,176,255,0.2)]"
+            >
+              Z MONEY TRACKER
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-[10px] text-cyan-400/80 font-mono font-black uppercase tracking-[0.4em] pl-[0.4em] animate-pulse"
+            >
+              Initializing System..
+            </motion.p>
+          </div>
         </div>
       </div>
     );
@@ -521,9 +632,12 @@ export default function App() {
             {/* App Logo */}
             <div className="flex items-center justify-between mb-10 px-2 lg:block">
               <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden shrink-0 shadow-lg shadow-black/30 border border-slate-700/50">
+                  <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+                </div>
                 <h1 className="text-xl font-black text-white tracking-tight">Z Money Tracker</h1>
               </div>
-              <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-500 p-2">
+              <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-slate-500 p-2 mt-2">
                 <X size={20} />
               </button>
             </div>
@@ -574,10 +688,22 @@ export default function App() {
                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date())}</p>
                  <p className="text-sm font-bold text-slate-300">{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                </div>
-               <div className="px-2 pt-2 border-t border-slate-800/20">
+               <div className="px-2 pt-2 border-t border-slate-800/20 flex flex-col gap-1.5">
                  <p className="text-[10px] text-slate-400 font-bold tracking-wide">
                    Developer <span className="text-yellow-500 dark:text-yellow-400 font-black">ZIN KO KO AUNG</span>
                  </p>
+                 {user && (
+                   <div className="flex items-center gap-1.5 select-none" id="connection-status-indicator">
+                     <span 
+                       className={`w-1.5 h-1.5 rounded-full transition-colors duration-500 ${
+                         syncState === 'syncing' ? 'bg-amber-500 ring-2 ring-amber-400/20 animate-pulse' : 'bg-emerald-500 ring-2 ring-emerald-500/20'
+                       }`} 
+                     />
+                     <span className="text-[9px] font-black tracking-wider uppercase text-slate-500 dark:text-slate-400 font-mono">
+                       {syncState === 'syncing' ? 'Syncing...' : 'Synced'}
+                     </span>
+                   </div>
+                 )}
                </div>
             </div>
           </aside>
@@ -589,18 +715,20 @@ export default function App() {
               <div className="flex items-center gap-4">
                 <button 
                   onClick={() => setIsSidebarOpen(true)}
-                  className="lg:hidden p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg"
+                  className="lg:hidden p-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg shrink-0"
                 >
                   <Menu size={18} />
                 </button>
-                <h2 className={`font-black text-slate-900 dark:text-white tracking-tight font-display ${language === 'MM' ? 'text-sm lg:text-lg leading-relaxed' : 'text-sm lg:text-xl'}`}>
-                  {currentView === View.DASHBOARD && (language === 'MM' ? 'ပင်မစာမျက်နှာ' : 'Dashboard')}
-                  {currentView === View.NEW_TRANSACTION && (language === 'MM' ? 'စာရင်းသစ်သွင်းရန်' : 'New Transaction')}
-                  {currentView === View.HISTORY && (language === 'MM' ? 'လုပ်ငန်းမှတ်တမ်း' : 'History')}
-                  {currentView === View.SETTINGS && (language === 'MM' ? 'ဆက်တင်များ' : 'Settings')}
-                  {currentView === View.REPORTS && (language === 'MM' ? 'ဘဏ္ဍာရေး အစီရင်ခံစာ' : 'Financial Reports')}
-                  {currentView === View.ADMIN && 'Admin Control Panel'}
-                </h2>
+                <div className="flex items-center gap-2.5">
+                  <h2 className={`font-black text-slate-900 dark:text-white tracking-tight font-display ${language === 'MM' ? 'text-sm lg:text-lg leading-relaxed' : 'text-sm lg:text-xl'}`}>
+                    {currentView === View.DASHBOARD && (language === 'MM' ? 'ပင်မစာမျက်နှာ' : 'Dashboard')}
+                    {currentView === View.NEW_TRANSACTION && (language === 'MM' ? 'စာရင်းသစ်သွင်းရန်' : 'New Transaction')}
+                    {currentView === View.HISTORY && (language === 'MM' ? 'လုပ်ငန်းမှတ်တမ်း' : 'History')}
+                    {currentView === View.SETTINGS && (language === 'MM' ? 'ဆက်တင်များ' : 'Settings')}
+                    {currentView === View.REPORTS && (language === 'MM' ? 'ဘဏ္ဍာရေး အစီရင်ခံစာ' : 'Financial Reports')}
+                    {currentView === View.ADMIN && 'Admin Control Panel'}
+                  </h2>
+                </div>
               </div>
               
               <div className="flex items-center gap-2 lg:gap-4">
@@ -993,6 +1121,7 @@ export default function App() {
         />
       )}
       
+
       <AnimatePresence>
         {loading && (
           <motion.div 

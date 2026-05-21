@@ -29,7 +29,14 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
+const notifySyncing = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('firestore-syncing'));
+  }
+};
+
 export const syncUserProfile = async (userId: string, profile: { email: string | null, displayName: string | null, photoURL: string | null }) => {
+  notifySyncing();
   const path = `users/${userId}`;
   try {
     const snap = await getDoc(doc(db, path));
@@ -64,6 +71,7 @@ export const getAllUsers = async (): Promise<any[]> => {
 };
 
 export const updateUserActivation = async (userId: string, active: boolean) => {
+  notifySyncing();
   const pathStatus = `users/${userId}/account/status`;
   const pathUser = `users/${userId}`;
   try {
@@ -129,6 +137,7 @@ export const getGlobalSettings = async (): Promise<any> => {
 };
 
 export const saveGlobalSettings = async (settings: any) => {
+  notifySyncing();
   const path = `settings/global`;
   try {
     const dataToSave = { ...settings };
@@ -144,6 +153,7 @@ export const saveGlobalSettings = async (settings: any) => {
 };
 
 export const saveUserSettings = async (userId: string, settings: Omit<UserSettings, 'updatedAt'>) => {
+  notifySyncing();
   const path = `users/${userId}/settings/info`;
   try {
     const dataToSave = {
@@ -185,6 +195,7 @@ export const checkActivation = async (userId: string): Promise<boolean> => {
 };
 
 export const addTransaction = async (userId: string, tx: Omit<Transaction, 'createdAt' | 'userId' | 'id'>) => {
+  notifySyncing();
   const path = `users/${userId}/transactions`;
   try {
     const newDoc = doc(collection(db, path));
@@ -220,6 +231,7 @@ export const getTransactions = async (userId: string): Promise<Transaction[]> =>
 };
 
 export const deleteTransaction = async (userId: string, txId: string) => {
+  notifySyncing();
   const path = `users/${userId}/transactions/${txId}`;
   try {
     await deleteDoc(doc(db, path));

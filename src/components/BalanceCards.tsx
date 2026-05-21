@@ -60,7 +60,9 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon: Icon, image, cu
   };
 
   return (
-    <div className={`bg-white dark:bg-[#0f172a] p-3 sm:p-4 rounded-xl border-[3px] ${borderColorClass} sleek-shadow flex items-center justify-between group transition-all overflow-hidden ${enabled ? 'hover:scale-[1.01]' : 'opacity-35 grayscale select-none pointer-events-none'}`}>
+    <div 
+      className={`bg-white dark:bg-[#0f172a] p-3 sm:p-4 rounded-xl border-[3px] ${borderColorClass} sleek-shadow flex items-center justify-between group transition-all overflow-hidden ${enabled ? 'hover:scale-[1.01]' : 'opacity-35 grayscale select-none pointer-events-none'}`}
+    >
       <div className="space-y-1 py-0.5 min-w-0 flex-1">
         <p className={`text-[10px] sm:text-[11px] lg:text-[12px] font-black font-display ${labelColorClass} ${
           language === 'MM'
